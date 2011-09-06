@@ -1,7 +1,8 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 /**
- * Jelly rAuth User Token
- * @package Jelly rAuth
- * @author  Alexander Kupreyeu (Kupreev)
+ * ORM rAuth User Token
+ * @package ORM rAuth
+ * @author  Alexander Kupreyeu (Kupreev) alexander.kupreev@gmail.com
+ * @author  Konstantin Vinogradov (VKS)
  */
-class Model_User_Token extends Model_Rauth_Token {}
+class Model_User_Token extends Model_Rauth_User_Token {}
