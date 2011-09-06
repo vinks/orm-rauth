@@ -14,7 +14,7 @@ The Kohana 3 authentication library for [ORM](http://github.com/jonathangeiger/k
 ## How can it be used?
 
 **Basic way**
-It is about using only one auth profile. Your user model will be Model\_User, feel free to enrich its functionality (copy it from *MODPATH/jelly-rauth/classes/model/user.php* to *APPPATH/jelly-rauth/classes/model/user.php* and extend).
+It is about using only one auth profile. Your user model will be Model\_User, feel free to enrich its functionality (copy it from *MODPATH/orm-rauth/classes/model/user.php* to *APPPATH/classes/model/user.php* and extend).
 
  1. Be sure to plug-in ORM modelling system in bootstrap.php
  2. Plug-in orm-rauth module in bootstrap.php
