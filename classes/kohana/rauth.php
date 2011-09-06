@@ -5,11 +5,11 @@
  *
  * @package		rAuth
  * @author		Kohana Team
- * @author		Alexander Kupreyeu (Kupreev)  
+ * @author		Alexander Kupreyeu (Kupreev)
  * @author		Konstantin Vinogradov (vks)
  */
 class Kohana_Rauth {
-	
+
 	// Auth instances
 	//protected static $_instance;
 	protected static $_instances = array();
@@ -20,40 +20,40 @@ class Kohana_Rauth {
 	 * @return Rauth
 	 */
 	public static function instance($config_entry = NULL)
-    {
-        if ( ! $config_entry)
-        {
-            $config_entry = 'default';
-        }
-        
-        if ( ! isset(Rauth::$_instances[$config_entry]))
-        {
-            // Load the configuration for this type
-            $config = Kohana::$config->load('rauth.'.$config_entry);
-            
-            $config['entry'] = $config_entry;
+	{
+		if ( ! $config_entry)
+		{
+			$config_entry = 'default';
+		}
 
-            // Create a new rauth instance
-            Rauth::$_instances[$config_entry] = new Rauth($config);
-        }
+		if ( ! isset(Rauth::$_instances[$config_entry]))
+		{
+			// Load the configuration for this type
+			$config = Kohana::$config->load('rauth.'.$config_entry);
 
-        return Rauth::$_instances[$config_entry];
-    }
-    
+			$config['entry'] = $config_entry;
+
+			// Create a new rauth instance
+			Rauth::$_instances[$config_entry] = new Rauth($config);
+		}
+
+		return Rauth::$_instances[$config_entry];
+	}
+
 	/**
-     * Create an instance of Rauth.
-     *
-     * @return  rAuth
-     */
-    public static function factory($config = array())
-    {
-        return new Rauth($config);
-    }
-    
-    protected $_session;
+	 * Create an instance of Rauth.
+	 *
+	 * @return  rAuth
+	 */
+	public static function factory($config = array())
+	{
+		return new Rauth($config);
+	}
+
+	protected $_session;
 
 	protected $_config;
-	
+
 	/**
 	 * Loads Session and configuration options.
 	 *
@@ -62,31 +62,31 @@ class Kohana_Rauth {
 	public function __construct($config = array())
 	{
 		// Clean up the salt pattern and split it into an array
-		$config['salt_pattern'] = preg_split('/,\s*/', $config['salt_pattern']); 
-        
+		$config['salt_pattern'] = preg_split('/,\s*/', $config['salt_pattern']);
+
 		// Check model name: it should be string and should not contain the model prefix
 		if (isset($config['model_name']) AND is_string($config['model_name']))
-			$config['model_name'] = str_ireplace('model_', '', strtolower($config['model_name']));
-        else
-			$config['model_name'] = 'user';
+		$config['model_name'] = str_ireplace('model_', '', strtolower($config['model_name']));
+		else
+		$config['model_name'] = 'user';
 
 		// Save the config in the object
 		$this->_config = $config;
-        
+
 		// Set token model name and check model existence
 		$this->_config['token_model_name'] = $this->_config['model_name'].'_token';
-        
+
 		$model_class = 'Model_'.$this->_config['token_model_name'];
-        
-        if ($this->_config['autologin_cookie'] AND ! class_exists($model_class))
-        {
-            throw new Kohana_Exception ('Could not find token model class :name', 
-                array(':name' => $model_class));
-        }
-        
-        $this->_session = Session::instance();
-    }
-    
+
+		if ($this->_config['autologin_cookie'] AND ! class_exists($model_class))
+		{
+			throw new Kohana_Exception ('Could not find token model class :name',
+			array(':name' => $model_class));
+		}
+
+		$this->_session = Session::instance();
+	}
+
 	/**
 	 * Gets the currently logged in user from the session.
 	 * Returns NULL if no user is currently logged in.
@@ -96,13 +96,13 @@ class Kohana_Rauth {
 	public function get_user()
 	{
 		if ($this->logged_in())
-        {
+		{
 			return $this->_session->get($this->_config['session_key']);
-        }
+		}
 
-        return FALSE;
+		return FALSE;
 	}
-	
+
 	/**
 	 * Check if there is an active session. Optionally allows checking for a
 	 * specific role.
@@ -113,10 +113,10 @@ class Kohana_Rauth {
 	public function logged_in()
 	{
 		$status = FALSE;
-                  
+
 		// Get the user from the session
 		$user = $this->_session->get($this->_config['session_key']);
-		
+
 		if ( ! is_object($user))
 		{
 			// Attempt auto login
@@ -125,64 +125,64 @@ class Kohana_Rauth {
 				// Success, get the user back out of the session
 				$user = $this->_session->get($this->_config['session_key']);
 			}
-        }
-        
-        // check from DB if set in config
-        if ($this->_config['strong_check'])
-        {
-            $user = $this->_get_object($user, TRUE);
-        }
+		}
 
-        if (is_object($user) 
-            AND is_subclass_of($user, 'Model_Rauth_User') 
-            AND $user->loaded()
-            AND $user->is_active
-            )
-        {
-            // Everything is okay so far
-            $status = TRUE;
-        }
+		// check from DB if set in config
+		if ($this->_config['strong_check'])
+		{
+			$user = $this->_get_object($user, TRUE);
+		}
 
-        return $status;
+		if (is_object($user)
+		AND is_subclass_of($user, 'Model_Rauth_User')
+		AND $user->loaded()
+		AND $user->is_active
+		)
+		{
+			// Everything is okay so far
+			$status = TRUE;
+		}
+
+		return $status;
 	}
-	
+
 	/**
-     * Logs a user in, based on the rauth autologin Cookie.
-     *
-     * @return  boolean
-     */
+	 * Logs a user in, based on the rauth autologin Cookie.
+	 *
+	 * @return  boolean
+	 */
 	public function auto_login()
 	{
 		if ($token = Cookie::get($this->_config['autologin_cookie']))
 		{
 			// Load the token and user
 			$token = ORM::factory($this->_config['token_model_name'], array('token' => $token));
-			
+
 			if ($token->loaded() AND $token->user->loaded())
 			{
 				if ($token->expires >= time() AND $token->user_agent === sha1(Request::$user_agent))
 				{
 					// Save the token to create a new unique token
 					$token->save();
-					
+
 					// Set the new token
 					Cookie::set($this->_config['autologin_cookie'], $token->token, $token->expires - time());
-					
+
 					// Complete the login with the found data
-                    $this->_complete_login($token->user);
-                    
-                    // Automatic login was successful
-                    return TRUE;
+					$this->_complete_login($token->user);
+
+					// Automatic login was successful
+					return TRUE;
 				}
-				
+
 				// Token is invalid
 				$token->delete();
 			}
 		}
-		
+
 		return FALSE;
 	}
-	
+
 	/**
 	 * Attempt to log in a user by using an ORM object and plain-text password.
 	 *
@@ -191,10 +191,10 @@ class Kohana_Rauth {
 	 * @param   boolean  enable autologin
 	 * @return  boolean
 	 */
-    public function login($username, $password, $remember = FALSE)
-    {
+	public function login($username, $password, $remember = FALSE)
+	{
 		if (empty($password))
-			return FALSE;
+		return FALSE;
 
 		if (is_string($password))
 		{
@@ -207,15 +207,15 @@ class Kohana_Rauth {
 
 		return $this->_login($username, $password, $remember);
 	}
-	
+
 	/**
 	 * Finds the salt from a password, based on the configured salt pattern.
-	 * 
+	 *
 	 * @param   string  hashed password
 	 * @return  string
 	 */
 	public function find_salt($password)
-	{		
+	{
 		$salt = '';
 
 		foreach ($this->_config['salt_pattern'] as $i => $offset)
@@ -223,13 +223,13 @@ class Kohana_Rauth {
 			// Find salt characters, take a good long look...
 			$salt .= substr($password, $offset + $i, 1);
 		}
-		
+
 		return $salt;
 	}
-	
+
 	/**
 	 * Perform a hash, using the configured method.
-	 * 
+	 *
 	 * @param   string  string to hash
 	 * @return  string
 	 */
@@ -237,11 +237,11 @@ class Kohana_Rauth {
 	{
 		return hash($this->_config['hash_method'], $str);
 	}
-	
+
 	/**
 	 * Creates a hashed password from a plaintext password, inserting salt
 	 * based on the configured salt pattern.
-	 * 
+	 *
 	 * @param   string  plaintext password
 	 * @return  string  hashed password string
 	 */
@@ -279,28 +279,28 @@ class Kohana_Rauth {
 			// Set the last offset to the current offset
 			$last_offset = $offset;
 		}
-		
+
 		// Return the password, with the remaining hash appended
 		return $password.$hash;
-    }
-    
+	}
+
 	/**
-     * Get the stored password for a username.
-     *
-     * @param   mixed   $user   username
-     * @return  string
-     */
-    public function password($user)
-    {
-        // Make sure we have a user object
-        $user = $this->_get_object($user);
-        
-        return $user->password;
-    }
-    
+	 * Get the stored password for a username.
+	 *
+	 * @param   mixed   $user   username
+	 * @return  string
+	 */
+	public function password($user)
+	{
+		// Make sure we have a user object
+		$user = $this->_get_object($user);
+
+		return $user->password;
+	}
+
 	/**
 	 * Log out a user by removing the related session variables.
-	 * 
+	 *
 	 * @param   boolean  completely destroy the session
 	 * @param	boolean  remove all tokens for user
 	 * @return  boolean
@@ -318,8 +318,8 @@ class Kohana_Rauth {
 			if ($token->loaded() AND $logout_all)
 			{
 				ORM::factory($this->_config['token_model_name'])
-					->where('user_id', '=', $token->user->id)
-					->delete_all();
+				->where('user_id', '=', $token->user->id)
+				->delete_all();
 			}
 			elseif ($token->loaded())
 			{
@@ -344,48 +344,48 @@ class Kohana_Rauth {
 		// Double check
 		return ! $this->logged_in();
 	}
-    
+
 	/**
 	 * Convert a unique identifier string to a user object
-	 * 
+	 *
 	 * @param mixed $user
-	 * @param   bool    $strong_check   TRUE to force checking existence in DB 
+	 * @param   bool    $strong_check   TRUE to force checking existence in DB
 	 * @return Model_User
 	 */
-    protected function _get_object($user, $strong_check = FALSE)
-    {
-    	$name = $this->_config['entry'];
-        static $current;
+	protected function _get_object($user, $strong_check = FALSE)
+	{
+		$name = $this->_config['entry'];
+		static $current;
 
-        //make sure the user is loaded only once.
+		//make sure the user is loaded only once.
 		if ( ! is_object($current[$name]) AND is_string($user))
 		{
-            // Load the user
-            $current[$name] = ORM::factory($this->_config['model_name']);
+			// Load the user
+			$current[$name] = ORM::factory($this->_config['model_name']);
 			$current[$name]->where($current[$name]->unique_key($user), '=', $user)->find();
 		}
-        
-		if (is_object($user) AND is_subclass_of($user, 'Model_Rauth_User') AND $user->loaded()) 
+
+		if (is_object($user) AND is_subclass_of($user, 'Model_Rauth_User') AND $user->loaded())
 		{
 			if ($strong_check)
 			{
-                $current[$name] = ORM::factory($this->_config['model_name'])
-                    ->where('id', '=', $user->id)
-                    ->where('username', '=', $user->username)
-                    ->find();
+				$current[$name] = ORM::factory($this->_config['model_name'])
+				->where('id', '=', $user->id)
+				->where('username', '=', $user->username)
+				->find();
 			}
 			else
 			{
 				$current[$name] = $user;
-			}            
+			}
 		}
 
 		return $current[$name];
 	}
-	
+
 	/**
 	 * Logs a user in.
-	 * 
+	 *
 	 * @param   string   username
 	 * @param   string   password
 	 * @param   boolean  enable auto-login
@@ -395,7 +395,7 @@ class Kohana_Rauth {
 	{
 		// Make sure we have a user object
 		$user = $this->_get_object($user);
-        
+
 		// If the passwords match, perform a login
 		if ($user->is_active AND $user->password === $password)
 		{
@@ -408,39 +408,39 @@ class Kohana_Rauth {
 					'user_agent'	=> sha1(Request::$user_agent),
 					'created'		=> time()
 				))->create();
-				
+
 				// Set the autologin Cookie
 				Cookie::set($this->_config['autologin_cookie'], $token->token, $this->_config['lifetime']);
 			}
 
 			// Finish the login
 			$this->_complete_login($user);
-			
+
 			return TRUE;
 		}
 
 		// Login failed
 		return FALSE;
 	}
-	
+
 	/**
-     * Complete the login for a user by incrementing the logins and setting
-     * session data: user_id, username, roles
-     *
-     * @param   object   user model object
-     * @return  void
-     */
-    protected function _complete_login($user)
-    {
-    	// Update the number of logins and the last login date
+	 * Complete the login for a user by incrementing the logins and setting
+	 * session data: user_id, username, roles
+	 *
+	 * @param   object   user model object
+	 * @return  void
+	 */
+	protected function _complete_login($user)
+	{
+		// Update the number of logins and the last login date
 		$user->complete_login();
-		
-        // Regenerate session_id
+
+		// Regenerate session_id
 		$this->_session->regenerate();
-		
+
 		// Store username in session
 		$this->_session->set($this->_config['session_key'], $user);
 
 		return TRUE;
-    }	
+	}
 }
