@@ -1,7 +1,7 @@
 # ORM-rAuth
 
 ## What is it?
-The Kohana 3 authentication library for [ORM](http://github.com/jonathangeiger/kohana-jelly) modelling system. It is based on the rebuilt [Jelly-rAuth](https://github.com/AlexKupreev/jelly-rauth) driver by [AlexKupreev](https://github.com/AlexKupreev). 
+The Kohana 3 authentication library for [ORM](https://github.com/kohana/orm) modelling system. It is based on the rebuilt [Jelly-rAuth](https://github.com/AlexKupreev/jelly-rauth) driver by [AlexKupreev](https://github.com/AlexKupreev). 
 
 **Main differences**
 
