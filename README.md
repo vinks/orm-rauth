@@ -44,18 +44,6 @@ Sometimes you feel some hesitancy when, for example, need admin password to be h
                 // should user status be checked from DB at every instance, set TRUE for better security, but that adds load for DB too
                 'strong_check'  =>  FALSE,
                 ),
-            'admin' => array(
-                // user model name without model prefix, 'user' by default
-                'model_name'    =>  'admin',
-                'hash_method'   =>  'sha1',
-                'salt_pattern'  =>  '2, 5, 8, 11, 14, 17, 20, 29', 
-                'lifetime'      =>  1209600,
-                'session_key'   =>  'rauth_admin',
-                // autologin cookie name
-                'autologin_cookie' =>  'admin_autologin',
-                // should user status be checked from DB at every instance, set TRUE for better security, but that adds load for DB too
-                'strong_check'  =>  TRUE,
-                ),    
          );
 
  4. Create the database structure, you can take jelly-rauth-schema.sql as example. If want to use autologins, create a corresponding number of token tables, for our config they **should** be 'auth\_user\_tokens', by model name.
